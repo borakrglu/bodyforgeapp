@@ -255,6 +255,8 @@ const pool = new Pool({
 const adapter = Adapter(pool);
 
 export const { auth } = CreateAuth({
+  trustHost: true,
+  adapter,
   providers: [Credentials({
   id: 'credentials-signin',
   name: 'Credentials Sign in',
@@ -278,25 +280,33 @@ export const { auth } = CreateAuth({
     }
 
     // logic to verify if user exists
-    const user = await adapter.getUserByEmail(email);
-    if (!user) {
-      return null;
-    }
-    const matchingAccount = user.accounts.find(
-      (account) => account.provider === 'credentials'
-    );
-    const accountPassword = matchingAccount?.password;
-    if (!accountPassword) {
-      return null;
-    }
+    try {
+      const user = await adapter.getUserByEmail(email);
+      if (!user) {
+        return null;
+      }
+      const matchingAccount = user.accounts.find(
+        (account) => account.provider === 'credentials'
+      );
+      const accountPassword = matchingAccount?.password;
+      if (!accountPassword) {
+        return null;
+      }
 
-    const isValid = await verify(accountPassword, password);
-    if (!isValid) {
+      const isValid = await verify(accountPassword, password);
+      if (!isValid) {
+        return null;
+      }
+
+      // return user object with the their profile data
+      return {
+        id: user.id.toString(),
+        email: user.email,
+        name: user.name || user.email,
+      };
+    } catch (e) {
       return null;
     }
-
-    // return user object with the their profile data
-    return user;
   },
 }),
   Credentials({

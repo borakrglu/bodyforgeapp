@@ -25,7 +25,7 @@ let globalAlertData = {
 	visible: false,
 	title: '',
 	message: '',
-	buttons: [{ text: 'OK', onPress: () => {}, style: 'default' }],
+	buttons: [{ text: 'OK', onPress: () => { }, style: 'default' }],
 	userInterfaceStyle: 'light',
 };
 let setGlobalAlert: ((data: typeof globalAlertData) => void) | null = null;
@@ -34,7 +34,7 @@ let globalPromptData = {
 	visible: false,
 	title: '',
 	message: '',
-	callbackOrButtons: [{ text: 'OK', onPress: () => {}, style: 'default' }],
+	callbackOrButtons: [{ text: 'OK', onPress: () => { }, style: 'default' }],
 	type: 'default',
 	defaultValue: '',
 	keyboardType: 'default',
@@ -48,13 +48,13 @@ const processButtons = (
 ): AlertButton[] => {
 	let processedButtons =
 		buttons && buttons.length > 0
-			? buttons.map((button) => ({ ...button, onPress: button.onPress || (() => {}) }))
+			? buttons.map((button) => ({ ...button, onPress: button.onPress || (() => { }) }))
 			: includeCancel
 				? [
-						{ text: 'Cancel', onPress: () => {}, style: 'cancel' as const },
-						{ text: 'OK', onPress: () => {}, style: 'default' as const },
-					]
-				: [{ text: 'OK', onPress: () => {}, style: 'default' as const }];
+					{ text: 'Cancel', onPress: () => { }, style: 'cancel' as const },
+					{ text: 'OK', onPress: () => { }, style: 'default' as const },
+				]
+				: [{ text: 'OK', onPress: () => { }, style: 'default' as const }];
 
 	// cancel button should always be the last button unless there are two buttons
 	if (processedButtons.length === 2) {
@@ -95,7 +95,7 @@ const Alert = {
 			message: message || '',
 			buttons: processedButtons.map((button) => ({
 				...button,
-				onPress: button.onPress || (() => {}),
+				onPress: button.onPress || (() => { }),
 			})),
 			userInterfaceStyle: userInterfaceStyle?.userInterfaceStyle || 'light',
 		};
@@ -121,7 +121,7 @@ const Alert = {
 			message: message || '',
 			callbackOrButtons: processedButtons.map((button) => ({
 				...button,
-				onPress: button.onPress || (() => {}),
+				onPress: button.onPress || (() => { }),
 			})),
 			type: type || 'plain-text',
 			defaultValue: defaultValue || '',
@@ -263,8 +263,8 @@ export const AlertModal = () => {
 						{ transform: [{ scale: scaleAnim }] },
 						modalData.userInterfaceStyle === 'dark'
 							? {
-									backgroundColor: 'rgba(0,0,0,0.65)',
-								}
+								backgroundColor: 'rgba(0,0,0,0.65)',
+							}
 							: { backgroundColor: 'rgba(255, 255, 255, 0.75)' },
 					]}
 				>
@@ -300,16 +300,16 @@ export const AlertModal = () => {
 											styles.textInputTop,
 											modalData.userInterfaceStyle === 'dark'
 												? {
-														backgroundColor: 'rgba(0, 0, 0, 0.6)',
-														color: 'white',
-														borderColor: 'rgba(255,255,255,0.3)',
-													}
+													backgroundColor: 'rgba(0, 0, 0, 0.6)',
+													color: 'white',
+													borderColor: 'rgba(255,255,255,0.3)',
+												}
 												: {
-														backgroundColor: 'rgba(255,255,255,0.9)',
-														color: 'black',
-														borderColor: 'rgba(0, 0, 0, 0.2)',
-													},
-										]}
+													backgroundColor: 'rgba(255,255,255,0.9)',
+													color: 'black',
+													borderColor: 'rgba(0, 0, 0, 0.2)',
+												},
+										] as any}
 										value={loginValue}
 										onChangeText={setLoginValue}
 										placeholder="Login"
@@ -325,19 +325,19 @@ export const AlertModal = () => {
 									style={[
 										styles.textInput,
 										modalData.type === 'login-password' &&
-											styles.textInputBottom,
+										styles.textInputBottom,
 										modalData.userInterfaceStyle === 'dark'
 											? {
-													backgroundColor: 'rgba(0, 0, 0, 0.6)',
-													color: 'white',
-													borderColor: 'rgba(255,255,255,0.3)',
-												}
+												backgroundColor: 'rgba(0, 0, 0, 0.6)',
+												color: 'white',
+												borderColor: 'rgba(255,255,255,0.3)',
+											}
 											: {
-													backgroundColor: 'rgba(255,255,255,0.9)',
-													color: 'black',
-													borderColor: 'rgba(0, 0, 0, 0.2)',
-												},
-									]}
+												backgroundColor: 'rgba(255,255,255,0.9)',
+												color: 'black',
+												borderColor: 'rgba(0, 0, 0, 0.2)',
+											},
+									] as any}
 									value={inputValue}
 									onChangeText={setInputValue}
 									placeholder={(() => {
@@ -402,13 +402,13 @@ export const AlertModal = () => {
 									modalData.buttons.length === 2 && { width: '50%' },
 									modalData.buttons.length <= 1 && { width: '100%' },
 									index === 0 &&
-										modalData.buttons.length === 2 && {
-											borderRightWidth: 1,
-											borderColor:
-												modalData.userInterfaceStyle === 'dark'
-													? 'rgba(255,255,255,0.2)'
-													: 'lightgray',
-										},
+									modalData.buttons.length === 2 && {
+										borderRightWidth: 1,
+										borderColor:
+											modalData.userInterfaceStyle === 'dark'
+												? 'rgba(255,255,255,0.2)'
+												: 'lightgray',
+									},
 								]}
 							>
 								<Text
@@ -430,7 +430,7 @@ export const AlertModal = () => {
 };
 
 const styling = (userInterfaceStyle: string) =>
-	// @ts-expect-error - outlineStyle is for web only
+	// @ts-ignore
 	StyleSheet.create({
 		container: {
 			flex: 1,
@@ -439,6 +439,7 @@ const styling = (userInterfaceStyle: string) =>
 			backgroundColor: 'rgba(0,0,0,0.2)',
 		},
 		content: {
+			// @ts-ignore
 			backdropFilter: 'blur(20px)',
 			borderRadius: 12,
 			width: 244,
@@ -475,6 +476,7 @@ const styling = (userInterfaceStyle: string) =>
 			marginBottom: -8,
 			marginHorizontal: 12,
 			fontSize: 12,
+			// @ts-ignore
 			outlineStyle: 'none',
 		},
 		textInputTop: {

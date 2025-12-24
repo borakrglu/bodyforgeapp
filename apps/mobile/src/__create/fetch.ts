@@ -9,8 +9,10 @@ const getURLFromArgs = (...args: Parameters<typeof fetch>) => {
   let url: string | null;
   if (typeof urlArg === 'string') {
     url = urlArg;
-  } else if (typeof urlArg === 'object' && urlArg !== null) {
-    url = urlArg.url;
+  } else if (urlArg instanceof URL) {
+    url = urlArg.toString();
+  } else if (typeof urlArg === 'object' && urlArg !== null && 'url' in urlArg) {
+    url = (urlArg as Request).url;
   } else {
     url = null;
   }
