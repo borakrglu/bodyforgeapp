@@ -45,9 +45,7 @@ const NATIVE_ALIASES = {
     './polyfills/native/texinput.native.jsx'
   ),
 };
-const SHARED_ALIASES = {
-  'expo-image': path.resolve(__dirname, './polyfills/shared/expo-image.tsx'),
-};
+const SHARED_ALIASES = {};
 fs.mkdirSync(VIRTUAL_ROOT_UNRESOLVED, { recursive: true });
 config.watchFolders = [...config.watchFolders, VIRTUAL_ROOT, VIRTUAL_ROOT_UNRESOLVED];
 
@@ -122,7 +120,7 @@ const originalGetTransformOptions = config.transformer.getTransformOptions;
 config.transformer = {
   ...config.transformer,
   getTransformOptions: async (entryPoints, options) => {
-    if (options.dev === false) { 
+    if (options.dev === false) {
       fs.rmSync(cacheDir, { recursive: true, force: true });
       fs.mkdirSync(cacheDir);
     }
