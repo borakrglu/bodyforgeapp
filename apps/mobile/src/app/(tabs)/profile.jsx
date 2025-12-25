@@ -28,7 +28,7 @@ export default function ProfilePage() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useLanguage();
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading, isGuest } = useUser();
   const { signOut: authSignOut } = useAuth();
   const { profileData, stats, loading } = useProfileData(user?.id);
 
@@ -61,6 +61,50 @@ export default function ProfilePage() {
               size="large"
               style={{ marginTop: 40 }}
             />
+          ) : isGuest ? (
+            <View style={{ alignItems: "center", marginTop: 40 }}>
+              <View
+                style={{
+                  backgroundColor: COLORS.forgedSteel,
+                  borderRadius: 20,
+                  padding: 30,
+                  alignItems: "center",
+                  borderWidth: 1,
+                  borderColor: COLORS.ironGrey,
+                  width: "100%",
+                }}
+              >
+                <Trophy color={COLORS.forgeOrange} size={50} strokeWidth={1.5} />
+                <Text
+                  style={{
+                    fontSize: 22,
+                    fontWeight: "800",
+                    color: "#fff",
+                    marginTop: 20,
+                    marginBottom: 10,
+                    textAlign: "center",
+                  }}
+                >
+                  Guest Mode
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: COLORS.steelSilver,
+                    textAlign: "center",
+                    marginBottom: 30,
+                    lineHeight: 24,
+                  }}
+                >
+                  {t("guestWarning")}
+                </Text>
+
+                <SignOutButton
+                  onPress={handleSignOut}
+                  label={t("signInToForge")}
+                />
+              </View>
+            </View>
           ) : (
             <>
               <PremiumStatusCard
