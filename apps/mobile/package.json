@@ -3,11 +3,7 @@
   "main": "index",
   "version": "1.0.0",
   "scripts": {
-    "postinstall": "patch-package",
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@expo-google-fonts/dev": "^0.4.7",
@@ -105,3 +101,4 @@
   },
   "private": true
 }
+

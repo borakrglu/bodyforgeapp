@@ -1,7 +1,8 @@
-import { View, ScrollView, TouchableOpacity, Text } from "react-native";
+import { View, ScrollView, Text } from "react-native";
+import { useState, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { Target, Trophy } from "lucide-react-native";
+import { Target, Trophy, Lock } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import useLanguage from "../../utils/i18n";
 import { useUser } from "../../utils/auth/useUser";
@@ -26,24 +27,22 @@ export default function QuestsPage() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t, language } = useLanguage();
-  const { user, loading: userLoading, isGuest } = useUser();
-  const { signOut: authSignOut } = useAuth();
+  const { user, loading: userLoading } = useUser();
+  const { isAuthenticated } = useAuth();
+  const [isGuest, setIsGuest] = useState(false);
 
-  const handleSignIn = async () => {
-    try {
-      await AsyncStorage.multiRemove(["isGuest", "languageSelected"]);
-      authSignOut();
-      router.replace("/language-selection");
-    } catch (error) {
-      console.error("Sign out error:", error);
-      authSignOut();
-    }
-  };
+  useEffect(() => {
+    AsyncStorage.getItem("isGuest").then((value) => {
+      setIsGuest(value === "true");
+    });
+  }, []);
+
+  const isGuestMode = isGuest && !isAuthenticated;
 
   const { dailyQuests, weeklyQuests, loading, loadQuests } = useQuests(
-    user?.id,
+    isGuestMode ? null : user?.id,
   );
-  const { userXP, loadUserXP } = useUserXP(user?.id);
+  const { userXP, loadUserXP } = useUserXP(isGuestMode ? null : user?.id);
 
   const handleCompleteQuest = async (questId, questType) => {
     try {
@@ -93,63 +92,32 @@ export default function QuestsPage() {
         showsVerticalScrollIndicator={false}
       >
         <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-          {loading ? (
-            <LoadingState language={language} />
-          ) : isGuest ? (
-            <View style={{ alignItems: "center", marginTop: 40 }}>
-              <View
-                style={{
-                  backgroundColor: COLORS.forgedSteel,
-                  borderRadius: 20,
-                  padding: 30,
-                  alignItems: "center",
-                  borderWidth: 1,
-                  borderColor: COLORS.ironGrey,
-                  width: "100%",
+          {isGuestMode ? (
+            <View style={{ alignItems: "center", paddingTop: 60 }}>
+              <Lock color={COLORS.forgeOrange} size={48} />
+              <Text style={{ color: "#fff", fontSize: 20, fontWeight: "700", marginTop: 16 }}>
+                {t("signInRequired") || "Sign in to unlock"}
+              </Text>
+              <Text style={{ color: COLORS.steelSilver, textAlign: "center", marginTop: 8, paddingHorizontal: 20 }}>
+                {t("questsLockedMessage") || "Create an account to track your quests, earn XP, and compete on leaderboards!"}
+              </Text>
+              <View 
+                style={{ 
+                  marginTop: 24, 
+                  backgroundColor: COLORS.forgeOrange, 
+                  paddingVertical: 14, 
+                  paddingHorizontal: 32, 
+                  borderRadius: 12 
                 }}
+                onTouchEnd={() => router.push("/auth")}
               >
-                <Target color={COLORS.forgeOrange} size={50} strokeWidth={1.5} />
-                <Text
-                  style={{
-                    fontSize: 22,
-                    fontWeight: "800",
-                    color: "#fff",
-                    marginTop: 20,
-                    marginBottom: 10,
-                    textAlign: "center",
-                  }}
-                >
-                  Guest Mode
+                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
+                  {t("signIn") || "Sign In"}
                 </Text>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: COLORS.steelSilver,
-                    textAlign: "center",
-                    marginBottom: 30,
-                    lineHeight: 24,
-                  }}
-                >
-                  {t("guestWarning")}
-                </Text>
-
-                <TouchableOpacity
-                  onPress={handleSignIn}
-                  style={{
-                    backgroundColor: COLORS.forgeOrange,
-                    paddingVertical: 12,
-                    paddingHorizontal: 24,
-                    borderRadius: 12,
-                    width: "100%",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>
-                    {t("signInToForge")}
-                  </Text>
-                </TouchableOpacity>
               </View>
             </View>
+          ) : loading ? (
+            <LoadingState language={language} />
           ) : (
             <>
               <LevelDisplay

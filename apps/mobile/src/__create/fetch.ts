@@ -10,9 +10,9 @@ const getURLFromArgs = (...args: Parameters<typeof fetch>) => {
   if (typeof urlArg === 'string') {
     url = urlArg;
   } else if (urlArg instanceof URL) {
-    url = urlArg.toString();
-  } else if (typeof urlArg === 'object' && urlArg !== null && 'url' in urlArg) {
-    url = (urlArg as Request).url;
+    url = urlArg.href;
+  } else if (urlArg instanceof Request) {
+    url = urlArg.url;
   } else {
     url = null;
   }
@@ -36,8 +36,8 @@ const isSecondPartyURL = (url: string) => {
 
 type Params = Parameters<typeof expoFetch>;
 const fetchToWeb = async function fetchWithHeaders(...args: Params) {
-  const firstPartyURL = process.env.EXPO_PUBLIC_BASE_URL || "http://192.168.100.225:4000";
-  const secondPartyURL = process.env.EXPO_PUBLIC_PROXY_BASE_URL || "http://192.168.100.225:4000";
+  const firstPartyURL = process.env.EXPO_PUBLIC_BASE_URL;
+  const secondPartyURL = process.env.EXPO_PUBLIC_PROXY_BASE_URL;
   const [input, init] = args;
   const url = getURLFromArgs(input, init);
   if (!url) {

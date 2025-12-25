@@ -38,15 +38,18 @@ function styleToBarColor(
   return resolved === "light" ? "#FFFFFF" : "#000000";
 }
 
-export const StatusBar = function StatusBar({ style = "auto", ...props }: StatusBarProps) {
-  const colorScheme = useColorScheme();
+export const StatusBar = React.forwardRef<any, StatusBarProps>(
+  function StatusBar({ style = "auto", ...props }, _ref) {
+    const colorScheme = useColorScheme();
 
-  useEffect(() => {
-    postColorToParent(styleToBarColor(style, colorScheme));
-  }, [style, colorScheme]);
+    useEffect(() => {
+      postColorToParent(styleToBarColor(style, colorScheme));
+    }, [style, colorScheme]);
 
-  return <ExpoStatusBar style={style} {...props} />;
-};
+    // @ts-ignore - ExpoStatusBar may not accept ref
+    return <ExpoStatusBar style={style} {...props} />;
+  }
+);
 
 export const setStatusBarStyle = (style: StatusBarStyle, animated?: boolean) =>
   ExpoSB.setStatusBarStyle(style, animated);

@@ -26,11 +26,16 @@ import {
   FileText,
   Shield,
   Mail,
+  Crown,
+  CreditCard,
+  RefreshCw,
 } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { useLanguage } from "../../utils/i18n";
 import { useAuth } from "../../utils/auth/useAuth";
+import usePremium from "../../utils/use-premium";
+import { useUser } from "../../utils/auth/useUser";
 
 const COLORS = {
   forgeOrange: "#FF6A1A",
@@ -47,6 +52,8 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { t, language, setLanguage } = useLanguage();
   const { signOut } = useAuth();
+  const { user } = useUser();
+  const { isPremium, subscriptionInfo, restore, loading: premiumLoading } = usePremium();
 
   // Settings State
   const [units, setUnits] = useState("metric");
@@ -58,6 +65,7 @@ export default function SettingsScreen() {
   const [progressUpdates, setProgressUpdates] = useState(true);
   const [mealReminders, setMealReminders] = useState(true);
   const [keepScreenOn, setKeepScreenOn] = useState(false);
+  const [restoringPurchases, setRestoringPurchases] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -285,6 +293,7 @@ export default function SettingsScreen() {
     icon: Icon,
     label,
     value,
+    valueColor,
     onPress,
     showChevron = true,
     isLast = false,
@@ -323,7 +332,7 @@ export default function SettingsScreen() {
         <Text
           style={{
             fontSize: 14,
-            color: COLORS.steelSilver,
+            color: valueColor || COLORS.steelSilver,
             marginRight: 8,
             fontWeight: "600",
           }}
@@ -441,6 +450,61 @@ export default function SettingsScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Subscription */}
+        <SettingSection title={t("subscription") || "Subscription"}>
+          <SettingRow
+            icon={Crown}
+            label={t("currentPlan") || "Current Plan"}
+            value={isPremium ? "Premium" : "Free"}
+            valueColor={isPremium ? COLORS.forgeOrange : COLORS.steelSilver}
+            showChevron={!isPremium}
+            onPress={() => {
+              if (!isPremium) {
+                router.push("/premium");
+              }
+            }}
+          />
+          {isPremium && subscriptionInfo && (
+            <SettingRow
+              icon={CreditCard}
+              label={t("manageBilling") || "Manage Billing"}
+              onPress={() => {
+                Alert.alert(
+                  t("manageBilling") || "Manage Billing",
+                  t("billingInfo") || "To manage your subscription, visit the app store where you purchased it or contact support@bodyforge.com",
+                );
+              }}
+            />
+          )}
+          <SettingRow
+            icon={RefreshCw}
+            label={t("restorePurchases") || "Restore Purchases"}
+            onPress={async () => {
+              if (restoringPurchases) return;
+              setRestoringPurchases(true);
+              try {
+                if (restore) {
+                  await restore();
+                } else {
+                  Alert.alert(
+                    t("restorePurchases") || "Restore Purchases",
+                    t("restoreNotAvailable") || "Purchase restoration is only available on mobile devices",
+                  );
+                }
+              } catch (error) {
+                console.error("Restore error:", error);
+                Alert.alert(
+                  t("error") || "Error",
+                  t("restoreError") || "Failed to restore purchases. Please try again.",
+                );
+              } finally {
+                setRestoringPurchases(false);
+              }
+            }}
+            isLast
+          />
+        </SettingSection>
+
         {/* Language */}
         <SettingSection title={t("language")}>
           <SettingRow

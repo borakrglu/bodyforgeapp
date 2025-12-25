@@ -5,11 +5,16 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../../utils/auth/useAuth";
-import { Mail, Apple, Chrome, UserCircle } from "lucide-react-native";
+import { Mail, Lock, UserCircle, Eye, EyeOff, User } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import useLanguage from "../../utils/i18n";
@@ -24,16 +29,21 @@ const COLORS = {
 
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
-  const { signIn, signUp, isReady } = useAuth();
-  const { t, language } = useLanguage(); // Destructure language here
+  const { setAuth } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
+  
+  const [mode, setMode] = useState("signin"); // signin or signup
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleContinueAsGuest = async () => {
     setLoading(true);
     try {
       await AsyncStorage.setItem("isGuest", "true");
-      // Small delay to ensure storage is written
       setTimeout(() => {
         router.replace("/(tabs)/home");
       }, 100);
@@ -44,147 +54,205 @@ export default function AuthScreen() {
     }
   };
 
-  const handleAuth = async (mode) => {
-    if (!isReady) return;
-    if (mode === "signup") {
-      signUp();
-    } else {
-      signIn();
+  const handleEmailAuth = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password");
+      return;
+    }
+    
+    if (mode === "signup" && !name) {
+      Alert.alert("Error", "Please enter your name");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const endpoint = mode === "signup" 
+        ? "/api/auth/callback/credentials-signup"
+        : "/api/auth/callback/credentials-signin";
+      
+      const body = mode === "signup"
+        ? { email, password, name }
+        : { email, password };
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.jwt && data.user) {
+          setAuth({ jwt: data.jwt, user: data.user });
+          router.replace("/");
+        } else {
+          // Try token endpoint
+          const tokenRes = await fetch("/api/auth/token");
+          if (tokenRes.ok) {
+            const tokenData = await tokenRes.json();
+            if (tokenData.jwt && tokenData.user) {
+              setAuth({ jwt: tokenData.jwt, user: tokenData.user });
+              router.replace("/");
+              return;
+            }
+          }
+          Alert.alert("Error", mode === "signup" 
+            ? "Account created! Please sign in." 
+            : "Invalid credentials");
+          if (mode === "signup") setMode("signin");
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        Alert.alert("Error", errorData.message || "Authentication failed");
+      }
+    } catch (error) {
+      console.error("Auth error:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.carbonBlack }}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1, backgroundColor: COLORS.carbonBlack }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <StatusBar style="light" />
-
-      <View
-        style={{ flex: 1, justifyContent: "center", paddingHorizontal: 30 }}
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+        keyboardShouldPersistTaps="handled"
       >
-        <View style={{ alignItems: "center", marginBottom: 60 }}>
-          <Text
-            style={{
-              fontSize: 48,
-              fontWeight: "900",
-              color: "#fff",
-              letterSpacing: -2,
-            }}
-          >
-            BODY<Text style={{ color: COLORS.forgeOrange }}>FORGE</Text>
-          </Text>
-          <View
-            style={{
-              width: 60,
-              height: 4,
-              backgroundColor: COLORS.forgeOrange,
-              marginTop: 4,
-            }}
-          />
-          <Text
-            style={{
-              color: COLORS.steelSilver,
-              marginTop: 12,
-              fontWeight: "600",
-              letterSpacing: 1,
-            }}
-          >
-            {t("brandStatement")}
-          </Text>
-        </View>
-
-        <View style={{ gap: 16 }}>
-          {/* Google Sign In */}
-          <TouchableOpacity
-            onPress={() => handleAuth("signin")}
-            style={styles.authButton}
-            disabled={!isReady}
-          >
-            <Chrome color="#fff" size={24} />
-            <Text style={styles.authButtonText}>{t("continueWithGoogle")}</Text>
-          </TouchableOpacity>
-
-          {/* Apple Sign In */}
-          <TouchableOpacity
-            onPress={() => handleAuth("signin")}
-            style={styles.authButton}
-            disabled={!isReady}
-          >
-            <Apple color="#fff" size={24} />
-            <Text style={styles.authButtonText}>{t("continueWithApple")}</Text>
-          </TouchableOpacity>
-
-          {/* Email Sign In */}
-          <TouchableOpacity
-            onPress={() => handleAuth("signin")}
-            style={[
-              styles.authButton,
-              {
-                backgroundColor: COLORS.forgeOrange,
-                borderColor: COLORS.forgeOrange,
-              },
-            ]}
-            disabled={!isReady}
-          >
-            <Mail color="#fff" size={24} />
-            <Text style={styles.authButtonText}>{t("continueWithEmail")}</Text>
-          </TouchableOpacity>
-
-          {/* Continue as Guest */}
-          <TouchableOpacity
-            onPress={handleContinueAsGuest}
-            style={[
-              styles.authButton,
-              {
-                backgroundColor: "transparent",
-                borderWidth: 1,
-                borderColor: COLORS.ironGrey,
-              },
-            ]}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={COLORS.steelSilver} />
-            ) : (
-              <>
-                <UserCircle color={COLORS.steelSilver} size={24} />
-                <Text
-                  style={[styles.authButtonText, { color: COLORS.steelSilver }]}
-                >
-                  {t("continueWithFree")}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ marginTop: 40, alignItems: "center" }}>
-          <TouchableOpacity onPress={() => handleAuth("signup")}>
-            <Text style={{ color: COLORS.steelSilver, fontSize: 14 }}>
-              {t("dontHaveAccount")}
-              <Text style={{ color: COLORS.forgeOrange, fontWeight: "700" }}>
-                {t("signUp")}
-              </Text>
+        <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 30 }}>
+          {/* Logo */}
+          <View style={{ alignItems: "center", marginBottom: 40 }}>
+            <Text style={{ fontSize: 48, fontWeight: "900", color: "#fff", letterSpacing: -2 }}>
+              BODY<Text style={{ color: COLORS.forgeOrange }}>FORGE</Text>
             </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+            <View style={{ width: 60, height: 4, backgroundColor: COLORS.forgeOrange, marginTop: 4 }} />
+            <Text style={{ color: COLORS.steelSilver, marginTop: 12, fontWeight: "600", letterSpacing: 1 }}>
+              {t("brandStatement")}
+            </Text>
+          </View>
 
-      <View style={{ paddingBottom: insets.bottom + 20, alignItems: "center" }}>
-        <Text
-          style={{
-            color: COLORS.ironGrey,
-            fontSize: 12,
-            textAlign: "center",
-            paddingHorizontal: 20,
-          }}
-        >
-          {t("termsPrivacy")}
-        </Text>
-      </View>
-    </View>
+          {/* Form */}
+          <View style={{ gap: 16 }}>
+            {mode === "signup" && (
+              <View style={styles.inputContainer}>
+                <User color={COLORS.steelSilver} size={20} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Name"
+                  placeholderTextColor={COLORS.ironGrey}
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                />
+              </View>
+            )}
+
+            <View style={styles.inputContainer}>
+              <Mail color={COLORS.steelSilver} size={20} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor={COLORS.ironGrey}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Lock color={COLORS.steelSilver} size={20} />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor={COLORS.ironGrey}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                {showPassword ? (
+                  <EyeOff color={COLORS.steelSilver} size={20} />
+                ) : (
+                  <Eye color={COLORS.steelSilver} size={20} />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              onPress={handleEmailAuth}
+              style={[styles.authButton, { backgroundColor: COLORS.forgeOrange, borderColor: COLORS.forgeOrange }]}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.authButtonText}>
+                  {mode === "signup" ? t("signUp") : t("signIn")}
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Guest Button */}
+            <TouchableOpacity
+              onPress={handleContinueAsGuest}
+              style={[styles.authButton, { backgroundColor: "transparent", borderWidth: 1, borderColor: COLORS.ironGrey }]}
+              disabled={loading}
+            >
+              <UserCircle color={COLORS.steelSilver} size={24} />
+              <Text style={[styles.authButtonText, { color: COLORS.steelSilver }]}>
+                {t("continueWithFree")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Toggle Mode */}
+          <View style={{ marginTop: 30, alignItems: "center" }}>
+            <TouchableOpacity onPress={() => setMode(mode === "signin" ? "signup" : "signin")}>
+              <Text style={{ color: COLORS.steelSilver, fontSize: 14 }}>
+                {mode === "signin" ? t("dontHaveAccount") : "Already have an account? "}
+                <Text style={{ color: COLORS.forgeOrange, fontWeight: "700" }}>
+                  {mode === "signin" ? t("signUp") : t("signIn")}
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={{ paddingBottom: insets.bottom + 20, alignItems: "center" }}>
+          <Text style={{ color: COLORS.ironGrey, fontSize: 12, textAlign: "center", paddingHorizontal: 20 }}>
+            {t("termsPrivacy")}
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.forgedSteel,
+    borderWidth: 1,
+    borderColor: COLORS.ironGrey,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  input: {
+    flex: 1,
+    color: "#fff",
+    fontSize: 16,
+  },
   authButton: {
     flexDirection: "row",
     alignItems: "center",

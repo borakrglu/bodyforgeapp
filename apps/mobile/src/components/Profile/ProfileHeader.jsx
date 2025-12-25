@@ -1,5 +1,4 @@
-import { View, Text } from "react-native";
-import { Image } from "expo-image";
+import { View, Text, Image } from "react-native";
 import { User } from "lucide-react-native";
 import { COLORS } from "@/constants/colors";
 

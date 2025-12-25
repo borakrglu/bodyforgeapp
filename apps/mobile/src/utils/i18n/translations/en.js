@@ -375,4 +375,23 @@ export const en = {
   titanMode: "Titan Mode",
   apexPhysique: "Apex Physique",
   legendTier: "Legend Tier",
+
+  // Premium & Subscription - NEW
+  subscription: "Subscription",
+  currentPlan: "Current Plan",
+  manageBilling: "Manage Billing",
+  billingInfo: "To manage your subscription, visit the app store where you purchased it or contact support@bodyforge.com",
+  restoreNotAvailable: "Purchase restoration is only available on mobile devices",
+  restoreError: "Failed to restore purchases. Please try again.",
+  premiumFeature: "Premium Feature",
+  upgradeToUnlock: "Upgrade to unlock this feature",
+  limitReached: "Limit Reached",
+  upgradeLimitMessage: "You've reached the free tier limit. Upgrade to premium for unlimited access.",
+  upgradeFeatureMessage: "This feature is only available for premium members.",
+  unlimited: "Unlimited",
+  signIn: "Sign In",
+  signInRequired: "Sign In Required",
+  questsLockedMessage: "Create an account to track your quests, earn XP, and compete on leaderboards!",
+  error: "Error",
+  success: "Success",
 };

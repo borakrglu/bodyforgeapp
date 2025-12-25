@@ -215,4 +215,23 @@ export const tr = {
   titanMode: "Titan Modu",
   apexPhysique: "Zirve Fizik",
   legendTier: "Efsane Seviye",
+
+  // Premium & Subscription - NEW
+  subscription: "Abonelik",
+  currentPlan: "Mevcut Plan",
+  manageBilling: "Faturalandırmayı Yönet",
+  billingInfo: "Aboneliğinizi yönetmek için satın aldığınız uygulama mağazasını ziyaret edin veya support@bodyforge.com ile iletişime geçin",
+  restoreNotAvailable: "Satın alma geri yükleme sadece mobil cihazlarda kullanılabilir",
+  restoreError: "Satın almalar geri yüklenemedi. Lütfen tekrar deneyin.",
+  premiumFeature: "Premium Özellik",
+  upgradeToUnlock: "Bu özelliği açmak için yükseltin",
+  limitReached: "Limite Ulaşıldı",
+  upgradeLimitMessage: "Ücretsiz sınıra ulaştınız. Sınırsız erişim için premium'a yükseltin.",
+  upgradeFeatureMessage: "Bu özellik sadece premium üyeler için kullanılabilir.",
+  unlimited: "Sınırsız",
+  signIn: "Giriş Yap",
+  signInRequired: "Giriş Gerekli",
+  questsLockedMessage: "Görevlerinizi takip etmek, XP kazanmak ve sıralamalarda yarışmak için hesap oluşturun!",
+  error: "Hata",
+  success: "Başarılı",
 };

@@ -3,7 +3,6 @@
     "name": "Anything mobile app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "bodyforge",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -50,10 +49,7 @@
       ],
       [
         "expo-video",
-        {
-          "supportsBackgroundPlayback": true,
-          "supportsPictureInPicture": true
-        }
+        { "supportsBackgroundPlayback": true, "supportsPictureInPicture": true }
       ],
       "expo-font",
       "expo-secure-store",
