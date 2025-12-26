@@ -129,6 +129,8 @@ export default function TrainingPage() {
     const workout = getWorkoutForDay(dayName);
     const isToday = index === todayIndex;
     const isRestDay = !workout;
+    // Free users can only access first 3 days
+    const isLocked = !isPremium && index >= 3;
 
     return (
       <View
@@ -320,39 +322,66 @@ export default function TrainingPage() {
 
             {/* Start Button */}
             <TouchableOpacity
-              onPress={() => handleStartWorkout(workout)}
+              onPress={() => isLocked ? router.push("/premium") : handleStartWorkout(workout)}
               style={{
-                backgroundColor: isToday
-                  ? COLORS.forgeOrange
-                  : COLORS.carbonBlack,
+                backgroundColor: isLocked
+                  ? COLORS.ironGrey
+                  : isToday
+                    ? COLORS.forgeOrange
+                    : COLORS.carbonBlack,
                 borderRadius: 12,
                 padding: 14,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
                 borderWidth: 1,
-                borderColor: isToday
-                  ? COLORS.orangeRimLight
-                  : COLORS.forgeOrange,
+                borderColor: isLocked
+                  ? "#FFD700"
+                  : isToday
+                    ? COLORS.orangeRimLight
+                    : COLORS.forgeOrange,
               }}
             >
-              <Play
-                color={isToday ? "#fff" : COLORS.forgeOrange}
-                size={18}
-                fill={isToday ? "#fff" : COLORS.forgeOrange}
-                strokeWidth={2.5}
-                style={{ marginRight: 8 }}
-              />
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: "800",
-                  color: isToday ? "#fff" : COLORS.forgeOrange,
-                  letterSpacing: 0.5,
-                }}
-              >
-                {isToday ? "START TODAY'S WORKOUT" : "START WORKOUT"}
-              </Text>
+              {isLocked ? (
+                <>
+                  <Lock
+                    color="#FFD700"
+                    size={18}
+                    strokeWidth={2.5}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "800",
+                      color: "#FFD700",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    UNLOCK WITH PREMIUM
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Play
+                    color={isToday ? "#fff" : COLORS.forgeOrange}
+                    size={18}
+                    fill={isToday ? "#fff" : COLORS.forgeOrange}
+                    strokeWidth={2.5}
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "800",
+                      color: isToday ? "#fff" : COLORS.forgeOrange,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {isToday ? "START TODAY'S WORKOUT" : "START WORKOUT"}
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
           </>
         )}
@@ -450,7 +479,7 @@ export default function TrainingPage() {
                     {userProgram.content.program_name}
                   </Text>
                   <TouchableOpacity
-                    onPress={handleRegenerate}
+                    onPress={isPremium ? handleRegenerate : () => router.push("/premium")}
                     disabled={regenerating}
                     style={{
                       flexDirection: "row",
@@ -460,30 +489,41 @@ export default function TrainingPage() {
                       paddingVertical: 8,
                       borderRadius: 8,
                       borderWidth: 1.5,
-                      borderColor: COLORS.ironGrey,
+                      borderColor: isPremium ? COLORS.ironGrey : "#FFD700",
                     }}
                   >
-                    <RefreshCw
-                      color={COLORS.forgeOrange}
-                      size={16}
-                      strokeWidth={2.5}
-                      style={{ marginRight: 6 }}
-                    />
+                    {isPremium ? (
+                      <RefreshCw
+                        color={COLORS.forgeOrange}
+                        size={16}
+                        strokeWidth={2.5}
+                        style={{ marginRight: 6 }}
+                      />
+                    ) : (
+                      <Crown
+                        color="#FFD700"
+                        size={16}
+                        fill="#FFD700"
+                        style={{ marginRight: 6 }}
+                      />
+                    )}
                     <Text
                       style={{
                         fontSize: 13,
                         fontWeight: "700",
-                        color: COLORS.forgeOrange,
+                        color: isPremium ? COLORS.forgeOrange : "#FFD700",
                         letterSpacing: 0.3,
                       }}
                     >
-                      {regenerating
-                        ? language === "tr"
-                          ? "Yenileniyor..."
-                          : "Regenerating..."
-                        : language === "tr"
-                          ? "Yenile"
-                          : "Regenerate"}
+                      {isPremium
+                        ? regenerating
+                          ? language === "tr"
+                            ? "Yenileniyor..."
+                            : "Regenerating..."
+                          : language === "tr"
+                            ? "Yenile"
+                            : "Regenerate"
+                        : "PRO"}
                     </Text>
                   </TouchableOpacity>
                 </View>
