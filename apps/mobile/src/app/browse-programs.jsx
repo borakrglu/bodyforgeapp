@@ -6,6 +6,7 @@ import {
   TextInput,
   Modal,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -19,10 +20,13 @@ import {
   Star,
   TrendingUp,
   Target,
+  Crown,
+  Lock,
 } from "lucide-react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import useLanguage from "../utils/i18n";
+import usePremium from "../utils/use-premium";
 
 const COLORS = {
   forgeOrange: "#FF6A1A",
@@ -55,6 +59,7 @@ export default function BrowseProgramsPage() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t, language } = useLanguage();
+  const { isPremium } = usePremium();
 
   const [programs, setPrograms] = useState([]);
   const [filteredPrograms, setFilteredPrograms] = useState([]);
@@ -382,222 +387,271 @@ export default function BrowseProgramsPage() {
               </Text>
             </View>
           ) : (
-            filteredPrograms.map((program, index) => (
-              <TouchableOpacity
-                key={program.id}
-                onPress={() => router.push(`/program/${program.id}`)}
-                style={{
-                  backgroundColor: COLORS.forgedSteel,
-                  borderRadius: 18,
-                  padding: 18,
-                  marginBottom: 16,
-                  borderWidth: 1,
-                  borderColor: COLORS.ironGrey,
-                  borderLeftWidth: 4,
-                  borderLeftColor: getLevelBadgeColor(program.level),
-                }}
-              >
-                {/* Level Badge */}
-                <View
+            filteredPrograms.map((program, index) => {
+              // Programs at index 5+ are premium-only
+              const isPremiumProgram = index >= 5 || program.isPremium;
+
+              const handleProgramPress = () => {
+                if (isPremiumProgram && !isPremium) {
+                  router.push("/premium");
+                } else {
+                  router.push(`/program/${program.id}`);
+                }
+              };
+
+              return (
+                <TouchableOpacity
+                  key={program.id}
+                  onPress={handleProgramPress}
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginBottom: 12,
-                    justifyContent: "space-between",
+                    backgroundColor: COLORS.forgedSteel,
+                    borderRadius: 18,
+                    padding: 18,
+                    marginBottom: 16,
+                    borderWidth: 1,
+                    borderColor: isPremiumProgram && !isPremium ? "#FFD700" : COLORS.ironGrey,
+                    borderLeftWidth: 4,
+                    borderLeftColor: getLevelBadgeColor(program.level),
                   }}
                 >
+                  {/* Level Badge */}
                   <View
                     style={{
-                      backgroundColor: getLevelBadgeColor(program.level) + "22",
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
-                      borderRadius: 8,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 12,
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <View
+                        style={{
+                          backgroundColor: getLevelBadgeColor(program.level) + "22",
+                          paddingHorizontal: 12,
+                          paddingVertical: 6,
+                          borderRadius: 8,
+                          borderWidth: 1,
+                          borderColor: getLevelBadgeColor(program.level),
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: "800",
+                            color: getLevelBadgeColor(program.level),
+                            textTransform: "uppercase",
+                            letterSpacing: 0.5,
+                          }}
+                        >
+                          {getLevelText(program.level)}
+                        </Text>
+                      </View>
+
+                      {/* Premium Crown Badge */}
+                      {isPremiumProgram && (
+                        <View
+                          style={{
+                            backgroundColor: "#FFD70022",
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            borderRadius: 6,
+                            borderWidth: 1,
+                            borderColor: "#FFD700",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <Crown color="#FFD700" size={12} fill="#FFD700" />
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: "800",
+                              color: "#FFD700",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            PRO
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {index < 3 && !isPremiumProgram && (
+                      <View
+                        style={{
+                          backgroundColor: COLORS.forgeOrange + "22",
+                          paddingHorizontal: 10,
+                          paddingVertical: 4,
+                          borderRadius: 6,
+                          borderWidth: 1,
+                          borderColor: COLORS.forgeOrange,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: "800",
+                            color: COLORS.forgeOrange,
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {t("popular")}
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* Lock icon for non-premium users */}
+                    {isPremiumProgram && !isPremium && (
+                      <Lock color="#FFD700" size={18} />
+                    )}
+                  </View>
+
+                  {/* Title */}
+                  <Text
+                    style={{
+                      fontSize: 19,
+                      fontWeight: "900",
+                      color: "#fff",
+                      marginBottom: 10,
+                      letterSpacing: 0.3,
+                    }}
+                  >
+                    {program.title}
+                  </Text>
+
+                  {/* Description */}
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: COLORS.steelSilver,
+                      lineHeight: 21,
+                      marginBottom: 16,
+                      fontWeight: "500",
+                    }}
+                    numberOfLines={2}
+                  >
+                    {program.description}
+                  </Text>
+
+                  {/* Meta Info */}
+                  <View
+                    style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}
+                  >
+                    {/* Goal */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: COLORS.carbonBlack,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: COLORS.ironGrey,
+                      }}
+                    >
+                      {getGoalIcon(program.goal)}
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          color: COLORS.steelSilver,
+                          marginLeft: 6,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {program.goal.replace("_", " ")}
+                      </Text>
+                    </View>
+
+                    {/* Frequency */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: COLORS.carbonBlack,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: COLORS.ironGrey,
+                      }}
+                    >
+                      <Dumbbell
+                        color={COLORS.steelSilver}
+                        size={16}
+                        strokeWidth={2.5}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          color: COLORS.steelSilver,
+                          marginLeft: 6,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {program.frequencyDays}x/week
+                      </Text>
+                    </View>
+
+                    {/* Duration */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: COLORS.carbonBlack,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: COLORS.ironGrey,
+                      }}
+                    >
+                      <Clock
+                        color={COLORS.steelSilver}
+                        size={16}
+                        strokeWidth={2.5}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          color: COLORS.steelSilver,
+                          marginLeft: 6,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {program.weeks} weeks
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* View Details Button */}
+                  <TouchableOpacity
+                    onPress={() => router.push(`/program/${program.id}`)}
+                    style={{
+                      marginTop: 16,
+                      backgroundColor: COLORS.forgeOrange,
+                      borderRadius: 12,
+                      paddingVertical: 14,
+                      alignItems: "center",
                       borderWidth: 1,
-                      borderColor: getLevelBadgeColor(program.level),
+                      borderColor: COLORS.moltenEmber,
                     }}
                   >
                     <Text
                       style={{
-                        fontSize: 11,
-                        fontWeight: "800",
-                        color: getLevelBadgeColor(program.level),
-                        textTransform: "uppercase",
+                        color: "#fff",
+                        fontSize: 15,
+                        fontWeight: "900",
                         letterSpacing: 0.5,
                       }}
                     >
-                      {getLevelText(program.level)}
+                      {t("viewDetails")}
                     </Text>
-                  </View>
-
-                  {index < 3 && (
-                    <View
-                      style={{
-                        backgroundColor: COLORS.forgeOrange + "22",
-                        paddingHorizontal: 10,
-                        paddingVertical: 4,
-                        borderRadius: 6,
-                        borderWidth: 1,
-                        borderColor: COLORS.forgeOrange,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 10,
-                          fontWeight: "800",
-                          color: COLORS.forgeOrange,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {t("popular")}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Title */}
-                <Text
-                  style={{
-                    fontSize: 19,
-                    fontWeight: "900",
-                    color: "#fff",
-                    marginBottom: 10,
-                    letterSpacing: 0.3,
-                  }}
-                >
-                  {program.title}
-                </Text>
-
-                {/* Description */}
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: COLORS.steelSilver,
-                    lineHeight: 21,
-                    marginBottom: 16,
-                    fontWeight: "500",
-                  }}
-                  numberOfLines={2}
-                >
-                  {program.description}
-                </Text>
-
-                {/* Meta Info */}
-                <View
-                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}
-                >
-                  {/* Goal */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      backgroundColor: COLORS.carbonBlack,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: COLORS.ironGrey,
-                    }}
-                  >
-                    {getGoalIcon(program.goal)}
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: COLORS.steelSilver,
-                        marginLeft: 6,
-                        fontWeight: "700",
-                      }}
-                    >
-                      {program.goal.replace("_", " ")}
-                    </Text>
-                  </View>
-
-                  {/* Frequency */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      backgroundColor: COLORS.carbonBlack,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: COLORS.ironGrey,
-                    }}
-                  >
-                    <Dumbbell
-                      color={COLORS.steelSilver}
-                      size={16}
-                      strokeWidth={2.5}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: COLORS.steelSilver,
-                        marginLeft: 6,
-                        fontWeight: "700",
-                      }}
-                    >
-                      {program.frequencyDays}x/week
-                    </Text>
-                  </View>
-
-                  {/* Duration */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      backgroundColor: COLORS.carbonBlack,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: COLORS.ironGrey,
-                    }}
-                  >
-                    <Clock
-                      color={COLORS.steelSilver}
-                      size={16}
-                      strokeWidth={2.5}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: COLORS.steelSilver,
-                        marginLeft: 6,
-                        fontWeight: "700",
-                      }}
-                    >
-                      {program.weeks} weeks
-                    </Text>
-                  </View>
-                </View>
-
-                {/* View Details Button */}
-                <TouchableOpacity
-                  onPress={() => router.push(`/program/${program.id}`)}
-                  style={{
-                    marginTop: 16,
-                    backgroundColor: COLORS.forgeOrange,
-                    borderRadius: 12,
-                    paddingVertical: 14,
-                    alignItems: "center",
-                    borderWidth: 1,
-                    borderColor: COLORS.moltenEmber,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#fff",
-                      fontSize: 15,
-                      fontWeight: "900",
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    {t("viewDetails")}
-                  </Text>
+                  </TouchableOpacity>
                 </TouchableOpacity>
-              </TouchableOpacity>
-            ))
+              );
+            })
           )}
         </View>
       </ScrollView>

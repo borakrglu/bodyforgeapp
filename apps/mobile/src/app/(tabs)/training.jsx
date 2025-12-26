@@ -13,11 +13,14 @@ import {
   Calendar,
   Play,
   Coffee,
+  Lock,
+  Crown,
 } from "lucide-react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import useLanguage from "../../utils/i18n";
 import { useUser } from "../../utils/auth/useUser";
+import usePremium from "../../utils/use-premium";
 
 // BodyForge Color Palette
 const COLORS = {
@@ -45,6 +48,7 @@ export default function TrainingPage() {
   const router = useRouter();
   const { t, language } = useLanguage();
   const { user } = useUser();
+  const { isPremium } = usePremium();
   const [userProgram, setUserProgram] = useState(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);

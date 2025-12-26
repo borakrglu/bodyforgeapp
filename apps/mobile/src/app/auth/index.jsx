@@ -27,12 +27,16 @@ const COLORS = {
   steelSilver: "#C7C7C7",
 };
 
+// Mock credentials for Expo Go testing
+const MOCK_EMAIL = "test@test.com";
+const MOCK_PASSWORD = "password123";
+
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const { setAuth } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
-  
+
   const [mode, setMode] = useState("signin"); // signin or signup
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -59,7 +63,7 @@ export default function AuthScreen() {
       Alert.alert("Error", "Please enter email and password");
       return;
     }
-    
+
     if (mode === "signup" && !name) {
       Alert.alert("Error", "Please enter your name");
       return;
@@ -67,44 +71,48 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
-      const endpoint = mode === "signup" 
-        ? "/api/auth/callback/credentials-signup"
-        : "/api/auth/callback/credentials-signin";
-      
-      const body = mode === "signup"
-        ? { email, password, name }
-        : { email, password };
+      // Mock authentication for Expo Go testing
+      // In production, replace this with actual API calls
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      if (mode === "signup") {
+        // Mock signup - always succeeds
+        const mockUser = {
+          id: `user-${Date.now()}`,
+          email: email.toLowerCase(),
+          name: name,
+          createdAt: new Date().toISOString(),
+        };
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.jwt && data.user) {
-          setAuth({ jwt: data.jwt, user: data.user });
-          router.replace("/");
+        await AsyncStorage.setItem("mockUser", JSON.stringify(mockUser));
+        setAuth({ jwt: "mock-jwt-token", user: mockUser });
+        router.replace("/(tabs)/home");
+      } else {
+        // Mock signin - check credentials
+        if (email.toLowerCase() === MOCK_EMAIL && password === MOCK_PASSWORD) {
+          const mockUser = {
+            id: "mock-user-1",
+            email: MOCK_EMAIL,
+            name: "Test User",
+            createdAt: new Date().toISOString(),
+          };
+
+          await AsyncStorage.setItem("mockUser", JSON.stringify(mockUser));
+          setAuth({ jwt: "mock-jwt-token", user: mockUser });
+          router.replace("/(tabs)/home");
         } else {
-          // Try token endpoint
-          const tokenRes = await fetch("/api/auth/token");
-          if (tokenRes.ok) {
-            const tokenData = await tokenRes.json();
-            if (tokenData.jwt && tokenData.user) {
-              setAuth({ jwt: tokenData.jwt, user: tokenData.user });
-              router.replace("/");
+          // Check if user signed up before
+          const storedUser = await AsyncStorage.getItem("mockUser");
+          if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            if (userData.email === email.toLowerCase()) {
+              // For mock purposes, accept any password for registered users
+              setAuth({ jwt: "mock-jwt-token", user: userData });
+              router.replace("/(tabs)/home");
               return;
             }
           }
-          Alert.alert("Error", mode === "signup" 
-            ? "Account created! Please sign in." 
-            : "Invalid credentials");
-          if (mode === "signup") setMode("signin");
+          Alert.alert("Error", "Invalid credentials. Use test@test.com / password123");
         }
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        Alert.alert("Error", errorData.message || "Authentication failed");
       }
     } catch (error) {
       console.error("Auth error:", error);
@@ -115,12 +123,12 @@ export default function AuthScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: COLORS.carbonBlack }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <StatusBar style="light" />
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
         keyboardShouldPersistTaps="handled"
       >

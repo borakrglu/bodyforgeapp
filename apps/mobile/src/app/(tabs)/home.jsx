@@ -8,11 +8,13 @@ import {
   Zap,
   Target,
   CheckCircle2,
+  Crown,
 } from "lucide-react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import useLanguage from "../../utils/i18n";
 import { useUser } from "../../utils/auth/useUser";
+import usePremium from "../../utils/use-premium";
 
 // BodyForge Color Palette
 const COLORS = {
@@ -36,6 +38,7 @@ export default function HomePage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { user } = useUser();
+  const { isPremium } = usePremium();
   const [featuredPrograms, setFeaturedPrograms] = useState([]);
   const [tips, setTips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -147,28 +150,44 @@ export default function HomePage() {
         }}
       >
         {/* Logo/Brand Section */}
-        <View style={{ marginBottom: 8 }}>
-          <Text
-            style={{
-              fontSize: 36,
-              fontWeight: "900",
-              color: "#fff",
-              letterSpacing: 1.5,
-              textTransform: "uppercase",
-            }}
-          >
-            {t("appName")}
-          </Text>
-          {/* Orange accent underline */}
-          <View
-            style={{
-              width: 80,
-              height: 3,
-              backgroundColor: COLORS.forgeOrange,
-              marginTop: 4,
-              borderRadius: 2,
-            }}
-          />
+        <View style={{ marginBottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View>
+            <Text
+              style={{
+                fontSize: 36,
+                fontWeight: "900",
+                color: "#fff",
+                letterSpacing: 1.5,
+                textTransform: "uppercase",
+              }}
+            >
+              {t("appName")}
+            </Text>
+            {/* Orange accent underline */}
+            <View
+              style={{
+                width: 80,
+                height: 3,
+                backgroundColor: COLORS.forgeOrange,
+                marginTop: 4,
+                borderRadius: 2,
+              }}
+            />
+          </View>
+          {isPremium && (
+            <View style={{
+              backgroundColor: "#FFD700",
+              borderRadius: 20,
+              paddingVertical: 6,
+              paddingHorizontal: 12,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+            }}>
+              <Crown color="#0D0D0D" size={14} fill="#0D0D0D" />
+              <Text style={{ color: "#0D0D0D", fontWeight: "800", fontSize: 12 }}>PRO</Text>
+            </View>
+          )}
         </View>
 
         <Text
@@ -181,6 +200,41 @@ export default function HomePage() {
         >
           {t("brandStatement")}
         </Text>
+
+        {/* Premium Upgrade Banner - Only show for free users */}
+        {!isPremium && (
+          <TouchableOpacity
+            onPress={() => router.push("/premium")}
+            style={{
+              marginTop: 16,
+              backgroundColor: COLORS.moltenEmber,
+              borderRadius: 14,
+              padding: 16,
+              flexDirection: "row",
+              alignItems: "center",
+              borderWidth: 1,
+              borderColor: COLORS.forgeOrange,
+            }}
+          >
+            <View style={{
+              backgroundColor: "rgba(255,255,255,0.2)",
+              borderRadius: 10,
+              padding: 8,
+              marginRight: 12,
+            }}>
+              <Crown color="#fff" size={20} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>
+                {t("upgradeToPremium") || "Upgrade to Premium"}
+              </Text>
+              <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 2 }}>
+                {t("unlockAllFeatures") || "Unlock unlimited workouts & AI features"}
+              </Text>
+            </View>
+            <Zap color="#fff" size={20} fill="#fff" />
+          </TouchableOpacity>
+        )}
 
         {/* XP Progress Bar - Molten Metal Style */}
         <View

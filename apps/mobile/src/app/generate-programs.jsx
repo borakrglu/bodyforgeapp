@@ -3,7 +3,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { Sparkles, Dumbbell, UtensilsCrossed, Pill } from "lucide-react-native";
+import { Sparkles, Dumbbell, UtensilsCrossed, Pill, Zap, Lock } from "lucide-react-native";
+import usePremium from "../utils/use-premium";
+import { PremiumGate } from "../components/PremiumGate";
 
 // BodyForge Color Palette
 const COLORS = {
@@ -20,17 +22,30 @@ export default function GenerateProgramsPage() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { userId } = useLocalSearchParams();
+  const { isPremium, hasReachedLimit, getRemainingUses, incrementUsage, loading: premiumLoading } = usePremium();
 
-  const [generating, setGenerating] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState("workout");
   const [error, setError] = useState(null);
+  const [limitReached, setLimitReached] = useState(false);
+
+  const remainingGenerations = getRemainingUses("workoutGenerations");
+  const maxGenerations = isPremium ? "∞" : "1";
 
   useEffect(() => {
-    generateAllPrograms();
-  }, []);
+    // Check limit before starting
+    if (!premiumLoading) {
+      if (hasReachedLimit("workoutGenerations")) {
+        setLimitReached(true);
+      } else {
+        generateAllPrograms();
+      }
+    }
+  }, [premiumLoading]);
 
   const generateAllPrograms = async () => {
+    setGenerating(true);
     try {
       // Generate workout program
       setCurrentStep("workout");
@@ -68,7 +83,8 @@ export default function GenerateProgramsPage() {
 
       if (!suppRes.ok) throw new Error("Failed to generate supplement plan");
 
-      // All done!
+      // All done! Increment usage counter
+      await incrementUsage("workoutGenerations");
       setTimeout(() => {
         router.replace("/(tabs)/home");
       }, 1000);
@@ -129,7 +145,27 @@ export default function GenerateProgramsPage() {
           alignItems: "center",
         }}
       >
-        {error ? (
+        {limitReached ? (
+          <View style={{ alignItems: "center", paddingHorizontal: 20 }}>
+            <PremiumGate
+              limitType="workoutGenerations"
+              title="Generation Limit Reached"
+              description="You've used your free workout generation. Upgrade to Premium for unlimited AI-powered program creation."
+            />
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{
+                marginTop: 20,
+                paddingVertical: 12,
+                paddingHorizontal: 24,
+              }}
+            >
+              <Text style={{ color: COLORS.steelSilver, fontSize: 15, fontWeight: "600" }}>
+                ← Go Back
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : error ? (
           <View style={{ alignItems: "center" }}>
             <Text
               style={{
