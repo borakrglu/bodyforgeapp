@@ -19,14 +19,6 @@ import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import useLanguage from "../../utils/i18n";
 
-const COLORS = {
-  forgeOrange: "#FF6A1A",
-  carbonBlack: "#0D0D0D",
-  forgedSteel: "#1A1A1A",
-  ironGrey: "#2E2E2E",
-  steelSilver: "#C7C7C7",
-};
-
 // Mock credentials for Expo Go testing
 const MOCK_EMAIL = "test@test.com";
 const MOCK_PASSWORD = "password123";
@@ -124,35 +116,35 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: COLORS.carbonBlack }}
+      style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <StatusBar style="light" />
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 30 }}>
+        <View style={styles.formWrapper}>
           {/* Logo */}
-          <View style={{ alignItems: "center", marginBottom: 40 }}>
-            <Text style={{ fontSize: 48, fontWeight: "900", color: "#fff", letterSpacing: -2 }}>
-              BODY<Text style={{ color: COLORS.forgeOrange }}>FORGE</Text>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>
+              BODY<Text style={styles.logoAccent}>FORGE</Text>
             </Text>
-            <View style={{ width: 60, height: 4, backgroundColor: COLORS.forgeOrange, marginTop: 4 }} />
-            <Text style={{ color: COLORS.steelSilver, marginTop: 12, fontWeight: "600", letterSpacing: 1 }}>
-              {t("brandStatement")}
+            <View style={styles.logoUnderline} />
+            <Text style={styles.tagline}>
+              {t("brandStatement") || "Forge Your Body. Transform Your Life."}
             </Text>
           </View>
 
           {/* Form */}
-          <View style={{ gap: 16 }}>
+          <View>
             {mode === "signup" && (
-              <View style={styles.inputContainer}>
-                <User color={COLORS.steelSilver} size={20} />
+              <View style={[styles.inputContainer, { marginBottom: 16 }]}>
+                <User color="#C7C7C7" size={20} />
                 <TextInput
                   style={styles.input}
                   placeholder="Name"
-                  placeholderTextColor={COLORS.ironGrey}
+                  placeholderTextColor="#666666"
                   value={name}
                   onChangeText={setName}
                   autoCapitalize="words"
@@ -160,12 +152,12 @@ export default function AuthScreen() {
               </View>
             )}
 
-            <View style={styles.inputContainer}>
-              <Mail color={COLORS.steelSilver} size={20} />
+            <View style={[styles.inputContainer, { marginBottom: 16 }]}>
+              <Mail color="#C7C7C7" size={20} />
               <TextInput
                 style={styles.input}
                 placeholder="Email"
-                placeholderTextColor={COLORS.ironGrey}
+                placeholderTextColor="#666666"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -174,21 +166,21 @@ export default function AuthScreen() {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Lock color={COLORS.steelSilver} size={20} />
+            <View style={[styles.inputContainer, { marginBottom: 16 }]}>
+              <Lock color="#C7C7C7" size={20} />
               <TextInput
                 style={styles.input}
                 placeholder="Password"
-                placeholderTextColor={COLORS.ironGrey}
+                placeholderTextColor="#666666"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 {showPassword ? (
-                  <EyeOff color={COLORS.steelSilver} size={20} />
+                  <EyeOff color="#C7C7C7" size={20} />
                 ) : (
-                  <Eye color={COLORS.steelSilver} size={20} />
+                  <Eye color="#C7C7C7" size={20} />
                 )}
               </TouchableOpacity>
             </View>
@@ -196,14 +188,14 @@ export default function AuthScreen() {
             {/* Submit Button */}
             <TouchableOpacity
               onPress={handleEmailAuth}
-              style={[styles.authButton, { backgroundColor: COLORS.forgeOrange, borderColor: COLORS.forgeOrange }]}
+              style={[styles.authButton, styles.primaryButton, { marginBottom: 16 }]}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.authButtonText}>
-                  {mode === "signup" ? t("signUp") : t("signIn")}
+                  {mode === "signup" ? (t("signUp") || "Sign Up") : (t("signIn") || "Sign In")}
                 </Text>
               )}
             </TouchableOpacity>
@@ -211,32 +203,39 @@ export default function AuthScreen() {
             {/* Guest Button */}
             <TouchableOpacity
               onPress={handleContinueAsGuest}
-              style={[styles.authButton, { backgroundColor: "transparent", borderWidth: 1, borderColor: COLORS.ironGrey }]}
+              style={[styles.authButton, styles.secondaryButton]}
               disabled={loading}
             >
-              <UserCircle color={COLORS.steelSilver} size={24} />
-              <Text style={[styles.authButtonText, { color: COLORS.steelSilver }]}>
-                {t("continueWithFree")}
+              <UserCircle color="#C7C7C7" size={24} />
+              <Text style={[styles.authButtonText, { color: "#C7C7C7", marginLeft: 12 }]}>
+                {t("continueWithFree") || "Continue with Free Version"}
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Toggle Mode */}
-          <View style={{ marginTop: 30, alignItems: "center" }}>
+          <View style={styles.toggleContainer}>
             <TouchableOpacity onPress={() => setMode(mode === "signin" ? "signup" : "signin")}>
-              <Text style={{ color: COLORS.steelSilver, fontSize: 14 }}>
-                {mode === "signin" ? t("dontHaveAccount") : "Already have an account? "}
-                <Text style={{ color: COLORS.forgeOrange, fontWeight: "700" }}>
-                  {mode === "signin" ? t("signUp") : t("signIn")}
+              <Text style={styles.toggleText}>
+                {mode === "signin" ? (t("dontHaveAccount") || "Don't have an account? ") : "Already have an account? "}
+                <Text style={styles.toggleAccent}>
+                  {mode === "signin" ? (t("signUp") || "Sign Up") : (t("signIn") || "Sign In")}
                 </Text>
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Test Credentials Hint */}
+          <View style={styles.hintContainer}>
+            <Text style={styles.hintText}>
+              Test: test@test.com / password123
+            </Text>
+          </View>
         </View>
 
-        <View style={{ paddingBottom: insets.bottom + 20, alignItems: "center" }}>
-          <Text style={{ color: COLORS.ironGrey, fontSize: 12, textAlign: "center", paddingHorizontal: 20 }}>
-            {t("termsPrivacy")}
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
+          <Text style={styles.footerText}>
+            {t("termsPrivacy") || "By continuing, you agree to our Terms & Privacy Policy"}
           </Text>
         </View>
       </ScrollView>
@@ -245,36 +244,109 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#0D0D0D",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  formWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 30,
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+  logoText: {
+    fontSize: 48,
+    fontWeight: "900",
+    color: "#fff",
+    letterSpacing: -2,
+  },
+  logoAccent: {
+    color: "#FF6A1A",
+  },
+  logoUnderline: {
+    width: 60,
+    height: 4,
+    backgroundColor: "#FF6A1A",
+    marginTop: 4,
+  },
+  tagline: {
+    color: "#C7C7C7",
+    marginTop: 12,
+    fontWeight: "600",
+    letterSpacing: 1,
+  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.forgedSteel,
+    backgroundColor: "#1A1A1A",
     borderWidth: 1,
-    borderColor: COLORS.ironGrey,
+    borderColor: "#2E2E2E",
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    gap: 12,
   },
   input: {
     flex: 1,
     color: "#fff",
     fontSize: 16,
+    marginLeft: 12,
   },
   authButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.forgedSteel,
-    borderWidth: 1,
-    borderColor: COLORS.ironGrey,
     borderRadius: 16,
     paddingVertical: 18,
-    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: "#FF6A1A",
+    borderWidth: 1,
+    borderColor: "#FF6A1A",
+  },
+  secondaryButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#2E2E2E",
   },
   authButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
+  },
+  toggleContainer: {
+    marginTop: 30,
+    alignItems: "center",
+  },
+  toggleText: {
+    color: "#C7C7C7",
+    fontSize: 14,
+  },
+  toggleAccent: {
+    color: "#FF6A1A",
+    fontWeight: "700",
+  },
+  hintContainer: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  hintText: {
+    color: "#666666",
+    fontSize: 12,
+  },
+  footer: {
+    alignItems: "center",
+  },
+  footerText: {
+    color: "#2E2E2E",
+    fontSize: 12,
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
 });

@@ -129,24 +129,40 @@ export default function TrainingPage() {
     const workout = getWorkoutForDay(dayName);
     const isToday = index === todayIndex;
     const isRestDay = !workout;
+    
     // Free users can only access first 3 days
     const isLocked = !isPremium && index >= 3;
 
+    const handleDayPress = () => {
+      if (isLocked) {
+        router.push("/premium");
+        return;
+      }
+      if (!isRestDay && workout) {
+        handleStartWorkout(workout);
+      }
+    };
+
     return (
-      <View
+      <TouchableOpacity
+        onPress={handleDayPress}
+        disabled={isRestDay && !isLocked}
         style={{
-          backgroundColor: isToday ? COLORS.moltenEmber : COLORS.forgedSteel,
+          backgroundColor: isLocked ? COLORS.ironGrey : (isToday ? COLORS.moltenEmber : COLORS.forgedSteel),
           borderRadius: 16,
           padding: 16,
           marginBottom: 12,
           borderWidth: isToday ? 2 : 1,
-          borderColor: isToday ? COLORS.forgeOrange : COLORS.ironGrey,
+          borderColor: isLocked ? "#FFD700" : (isToday ? COLORS.forgeOrange : COLORS.ironGrey),
           borderLeftWidth: 4,
-          borderLeftColor: isToday
-            ? COLORS.orangeRimLight
-            : isRestDay
-              ? COLORS.steelSilver
-              : COLORS.forgeOrange,
+          borderLeftColor: isLocked
+            ? "#FFD700"
+            : isToday
+              ? COLORS.orangeRimLight
+              : isRestDay
+                ? COLORS.steelSilver
+                : COLORS.forgeOrange,
+          opacity: isLocked ? 0.7 : 1,
         }}
       >
         {/* Day Header */}
@@ -176,7 +192,7 @@ export default function TrainingPage() {
               >
                 {t(dayName.toLowerCase())}
               </Text>
-              {isToday && (
+              {isToday && !isLocked && (
                 <View
                   style={{
                     backgroundColor: COLORS.forgeOrange,
@@ -198,8 +214,34 @@ export default function TrainingPage() {
                   </Text>
                 </View>
               )}
+              {isLocked && (
+                <View
+                  style={{
+                    backgroundColor: "#FFD70022",
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                    borderRadius: 6,
+                    marginLeft: 10,
+                    flexDirection: "row",
+                    alignItems: "center",
+                  }}
+                >
+                  <Crown color="#FFD700" size={12} fill="#FFD700" />
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: "800",
+                      color: "#FFD700",
+                      letterSpacing: 0.5,
+                      marginLeft: 4,
+                    }}
+                  >
+                    PRO
+                  </Text>
+                </View>
+              )}
             </View>
-            {workout && (
+            {workout && !isLocked && (
               <Text
                 style={{
                   fontSize: 14,
@@ -210,9 +252,32 @@ export default function TrainingPage() {
                 {workout.focus}
               </Text>
             )}
+            {isLocked && (
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: "#FFD700",
+                  fontWeight: "600",
+                }}
+              >
+                Upgrade to unlock
+              </Text>
+            )}
           </View>
 
-          {isRestDay ? (
+          {isLocked ? (
+            <View
+              style={{
+                backgroundColor: "#FFD70022",
+                borderRadius: 10,
+                padding: 10,
+                borderWidth: 1,
+                borderColor: "#FFD700",
+              }}
+            >
+              <Lock color="#FFD700" size={22} strokeWidth={2.5} />
+            </View>
+          ) : isRestDay ? (
             <View
               style={{
                 backgroundColor: COLORS.carbonBlack,
@@ -245,8 +310,30 @@ export default function TrainingPage() {
           )}
         </View>
 
-        {/* Workout Details or Rest Day */}
-        {isRestDay ? (
+        {/* Locked State */}
+        {isLocked ? (
+          <View
+            style={{
+              backgroundColor: "#FFD70011",
+              borderRadius: 10,
+              padding: 12,
+              borderWidth: 1,
+              borderColor: "#FFD70033",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                color: "#FFD700",
+                fontWeight: "700",
+                textAlign: "center",
+              }}
+            >
+              🔒 Tap to unlock with Premium
+            </Text>
+          </View>
+        ) : isRestDay ? (
           <View
             style={{
               backgroundColor: COLORS.carbonBlack,
@@ -322,70 +409,43 @@ export default function TrainingPage() {
 
             {/* Start Button */}
             <TouchableOpacity
-              onPress={() => isLocked ? router.push("/premium") : handleStartWorkout(workout)}
+              onPress={() => handleStartWorkout(workout)}
               style={{
-                backgroundColor: isLocked
-                  ? COLORS.ironGrey
-                  : isToday
-                    ? COLORS.forgeOrange
-                    : COLORS.carbonBlack,
+                backgroundColor: isToday
+                  ? COLORS.forgeOrange
+                  : COLORS.carbonBlack,
                 borderRadius: 12,
                 padding: 14,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
                 borderWidth: 1,
-                borderColor: isLocked
-                  ? "#FFD700"
-                  : isToday
-                    ? COLORS.orangeRimLight
-                    : COLORS.forgeOrange,
+                borderColor: isToday
+                  ? COLORS.orangeRimLight
+                  : COLORS.forgeOrange,
               }}
             >
-              {isLocked ? (
-                <>
-                  <Lock
-                    color="#FFD700"
-                    size={18}
-                    strokeWidth={2.5}
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: "800",
-                      color: "#FFD700",
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    UNLOCK WITH PREMIUM
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Play
-                    color={isToday ? "#fff" : COLORS.forgeOrange}
-                    size={18}
-                    fill={isToday ? "#fff" : COLORS.forgeOrange}
-                    strokeWidth={2.5}
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: "800",
-                      color: isToday ? "#fff" : COLORS.forgeOrange,
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    {isToday ? "START TODAY'S WORKOUT" : "START WORKOUT"}
-                  </Text>
-                </>
-              )}
+              <Play
+                color={isToday ? "#fff" : COLORS.forgeOrange}
+                size={18}
+                fill={isToday ? "#fff" : COLORS.forgeOrange}
+                strokeWidth={2.5}
+                style={{ marginRight: 8 }}
+              />
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: "800",
+                  color: isToday ? "#fff" : COLORS.forgeOrange,
+                  letterSpacing: 0.5,
+                }}
+              >
+                {isToday ? "START TODAY'S WORKOUT" : "START WORKOUT"}
+              </Text>
             </TouchableOpacity>
           </>
         )}
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -479,12 +539,18 @@ export default function TrainingPage() {
                     {userProgram.content.program_name}
                   </Text>
                   <TouchableOpacity
-                    onPress={isPremium ? handleRegenerate : () => router.push("/premium")}
+                    onPress={() => {
+                      if (!isPremium) {
+                        router.push("/premium");
+                        return;
+                      }
+                      handleRegenerate();
+                    }}
                     disabled={regenerating}
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      backgroundColor: COLORS.forgedSteel,
+                      backgroundColor: isPremium ? COLORS.forgedSteel : "#FFD70022",
                       paddingHorizontal: 12,
                       paddingVertical: 8,
                       borderRadius: 8,
@@ -515,15 +581,13 @@ export default function TrainingPage() {
                         letterSpacing: 0.3,
                       }}
                     >
-                      {isPremium
-                        ? regenerating
-                          ? language === "tr"
-                            ? "Yenileniyor..."
-                            : "Regenerating..."
-                          : language === "tr"
-                            ? "Yenile"
-                            : "Regenerate"
-                        : "PRO"}
+                      {regenerating
+                        ? language === "tr"
+                          ? "Yenileniyor..."
+                          : "Regenerating..."
+                        : isPremium
+                          ? (language === "tr" ? "Yenile" : "Regenerate")
+                          : "PRO"}
                     </Text>
                   </TouchableOpacity>
                 </View>

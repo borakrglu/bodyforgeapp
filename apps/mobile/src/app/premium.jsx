@@ -4,6 +4,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -20,7 +21,7 @@ import {
   Inter_500Medium,
   Inter_600SemiBold,
 } from "@expo-google-fonts/inter";
-import useRevenueCat from "../utils/use-revenuecat";
+import usePremium from "../utils/use-premium";
 import useLanguage from "../utils/i18n";
 import { useUser } from "../utils/auth/useUser";
 
@@ -32,8 +33,7 @@ export default function PremiumPaywall() {
   const { t } = useLanguage();
   const { user } = useUser();
 
-  const { isPremium, loading, offerings, purchase, restore, getOfferings } =
-    useRevenueCat(user?.id);
+  const { isPremium, loading, purchase, restore } = usePremium();
 
   const [loaded] = useFonts({
     Poppins_600SemiBold,
@@ -43,40 +43,54 @@ export default function PremiumPaywall() {
     Inter_600SemiBold,
   });
 
+  // Redirect if already premium
   useEffect(() => {
-    if (user?.id) {
-      getOfferings();
+    if (isPremium && !loading) {
+      Alert.alert(
+        "Already Premium! 🎉",
+        "You already have premium access. Enjoy all features!",
+        [{ text: "OK", onPress: () => router.back() }]
+      );
     }
-  }, [user?.id]);
+  }, [isPremium, loading]);
 
   const handleUpgrade = async () => {
     setPurchasing(true);
 
     try {
-      // Use RevenueCat package identifiers
-      const packageId =
-        selectedPlan === "monthly" ? "premium_monthly" : "premium_yearly";
-      const result = await purchase(packageId);
-
-      if (result.success && result.isPremium) {
-        // Success! User is now premium
-        router.back();
-      } else if (result.cancelled) {
-        // User cancelled
-        setPurchasing(false);
-      } else {
-        // Error occurred
-        setPurchasing(false);
-        alert(t("errorGenerating"));
+      // In Expo Go, this will activate mock premium
+      const result = await purchase();
+      
+      if (result?.success) {
+        Alert.alert(
+          "Success! 🎉",
+          "Premium activated! Enjoy unlimited access to all features.",
+          [{ text: "OK", onPress: () => router.back() }]
+        );
       }
     } catch (error) {
       console.error("Purchase error:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
       setPurchasing(false);
     }
   };
 
   const handleRestore = async () => {
-    await restore();
+    setPurchasing(true);
+    try {
+      const result = await restore();
+      if (result?.isPremium) {
+        Alert.alert("Restored!", "Your premium access has been restored.");
+        router.back();
+      } else {
+        Alert.alert("No Purchases", "No previous purchases found.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to restore purchases.");
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   if (!loaded || loading) {
@@ -518,6 +532,25 @@ export default function PremiumPaywall() {
             {t("restorePurchases")}
           </Text>
         </TouchableOpacity>
+
+        {/* Test Mode Hint */}
+        <View style={{ 
+          backgroundColor: "rgba(255, 107, 0, 0.1)", 
+          borderRadius: 8, 
+          padding: 10,
+          marginBottom: 8,
+          borderWidth: 1,
+          borderColor: "rgba(255, 107, 0, 0.3)",
+        }}>
+          <Text style={{ 
+            fontSize: 11, 
+            color: "#FF6B00", 
+            textAlign: "center",
+            fontFamily: "Inter_500Medium",
+          }}>
+            🧪 Test Mode: Tap "Start" to activate premium for testing
+          </Text>
+        </View>
 
         <TouchableOpacity
           onPress={() => router.back()}
